@@ -17,7 +17,7 @@ class Recognizer2D(BaseRecognizer):
         batches = imgs.shape[0]
         # print("Images shape",imgs.shape)
         # imgs=imgs.squeeze(2)
-        imgs=imgs.permute(0,2,1)
+        # imgs=imgs.permute(0,2,1)
         
         # imgs=self.SGP_block(imgs)
         imgs = imgs.reshape((-1, ) + imgs.shape[2:])
