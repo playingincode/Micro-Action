@@ -40,7 +40,7 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
         super().__init__()
         # record the source of the backbone
         self.backbone_from = 'mmaction2'
-        self.SGP_block=SGPBlock(1408)
+        self.SGP_block=SGPBlock(1408,1,1,k=1.5,n_hidden=768,init_conv_vars=0)
         if backbone['type'].startswith('mmcls.'):
             
             try:

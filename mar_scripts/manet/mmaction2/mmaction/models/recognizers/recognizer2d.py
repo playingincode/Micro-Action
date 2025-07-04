@@ -16,10 +16,14 @@ class Recognizer2D(BaseRecognizer):
         assert self.with_cls_head
         batches = imgs.shape[0]
         # print("Images shape",imgs.shape)
-        # imgs=imgs.squeeze(2)
-        # imgs=imgs.permute(0,2,1)
-        
-        # imgs=self.SGP_block(imgs)
+        imgs=imgs.squeeze(2)
+        imgs=imgs.permute(0,2,1)
+        # print("After Permute and squeeze shape",imgs.shape)
+        mask_bool = torch.ones((10, 10), dtype=torch.bool)
+        mask_bool = mask_bool.unsqueeze(1).cuda()
+        imgs,_=self.SGP_block(imgs,mask_bool)
+        # print("After SGP",imgs.shape)
+        imgs=imgs.permute(0,2,1)
         imgs = imgs.reshape((-1, ) + imgs.shape[2:])
         num_segs = imgs.shape[0] // batches
 
@@ -50,7 +54,7 @@ class Recognizer2D(BaseRecognizer):
             num_segs = 1
             losses.update(loss_aux)
         # print("X shape",x.shape)
-        x = x.squeeze(1)
+        # x = x.squeeze(1)
         cls_score,emb_score = self.cls_head(x, num_segs)#8,59   8,300
         gt_labels = labels.squeeze()#8
         # print("Classifier score",cls_score.shape)
@@ -68,6 +72,13 @@ class Recognizer2D(BaseRecognizer):
         """Defines the computation performed at every call when evaluation,
         testing and gradcam."""
         batches = imgs.shape[0]
+        imgs=imgs.squeeze(2)
+        imgs=imgs.permute(0,2,1)
+        mask_bool = torch.ones((10, 10), dtype=torch.bool)
+        mask_bool = mask_bool.unsqueeze(1).cuda()
+        imgs,_=self.SGP_block(imgs,mask_bool)
+        # print("After SGP",imgs.shape)
+        imgs=imgs.permute(0,2,1)
         imgs = imgs.reshape((-1, ) + imgs.shape[2:])
         num_segs = imgs.shape[0] // batches
 
@@ -110,7 +121,7 @@ class Recognizer2D(BaseRecognizer):
         #   4) `num_clips` in `SampleFrames` or its subclass if `clip_len != 1`
 
         # should have cls_head if not extracting features
-        x = x.squeeze(1)
+        # x = x.squeeze(1)
         cls_score,_ = self.cls_head(x, num_segs)#8,59
 
         assert cls_score.size()[0] % batches == 0
