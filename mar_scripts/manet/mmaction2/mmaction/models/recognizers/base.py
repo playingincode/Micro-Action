@@ -11,7 +11,7 @@ from mmcv.runner import auto_fp16
 from mmcv.utils import digit_version
 
 from .. import builder
-
+from .tridet_block import SGPBlock
 
 class BaseRecognizer(nn.Module, metaclass=ABCMeta):
     """Base class for recognizers.
@@ -40,8 +40,9 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
         super().__init__()
         # record the source of the backbone
         self.backbone_from = 'mmaction2'
-
+        self.SGP_block=SGPBlock(1408)
         if backbone['type'].startswith('mmcls.'):
+            
             try:
                 import mmcls.models.builder as mmcls_builder
             except (ImportError, ModuleNotFoundError):
@@ -79,6 +80,7 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
             self.backbone = timm.create_model(backbone_type, **backbone)
             self.backbone_from = 'timm'
         else:
+            
             self.backbone = builder.build_backbone(backbone)
 
         if neck is not None:
@@ -156,6 +158,8 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
         Returns:
             torch.tensor: The extracted features.
         """
+        # print("backbone",self.backbone_from)
+        # exit()
         if (hasattr(self.backbone, 'features')
                 and self.backbone_from == 'torchvision'):
             x = self.backbone.features(imgs)
@@ -167,6 +171,7 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
                 assert len(x) == 1
                 x = x[0]
         else:
+            # print("Entering else")
             x = self.backbone(imgs)
         return x
 

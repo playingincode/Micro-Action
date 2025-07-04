@@ -5,7 +5,7 @@ from mmcv.cnn import normal_init
 
 from ..builder import HEADS
 from .base import AvgConsensus, BaseHead
-
+# from ..recognizers.tridet_block import SGPBlock
 
 @HEADS.register_module()
 class MANetHead(BaseHead):
@@ -74,6 +74,8 @@ class MANetHead(BaseHead):
             self.avg_pool = nn.AdaptiveAvgPool2d(1)
         else:
             self.avg_pool = None
+        
+        # self.SGP_head=SGPBlock()
 
     def init_weights(self):
         """Initiate the parameters from scratch."""
@@ -95,11 +97,15 @@ class MANetHead(BaseHead):
         Returns:
             torch.Tensor: The classification scores for input samples.
         """
-        if self.avg_pool is not None:
-            x = self.avg_pool(x)
-        x = torch.flatten(x, 1)
-        if self.dropout is not None:
-            x = self.dropout(x)
+        # print("X shape inside classifier",x.shape)
+        # if self.avg_pool is not None:
+        #     x = self.avg_pool(x)
+        # x = torch.flatten(x, 1)
+        # if self.dropout is not None:
+        #     x = self.dropout(x)
+        
+        # print("X shape inside classifier",x.shape)
+        
         cls_score = self.fc_cls(x)
         emb_score = self.fc_emb_t(self.tanh(self.fc_emb(x)))
 

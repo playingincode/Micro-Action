@@ -15,14 +15,23 @@ class Recognizer2D(BaseRecognizer):
 
         assert self.with_cls_head
         batches = imgs.shape[0]
+        # print("Images shape",imgs.shape)
+        # imgs=imgs.squeeze(2)
+        imgs=imgs.permute(0,2,1)
+        
+        # imgs=self.SGP_block(imgs)
         imgs = imgs.reshape((-1, ) + imgs.shape[2:])
         num_segs = imgs.shape[0] // batches
 
         losses = dict()
-
-        x = self.extract_feat(imgs)
-
+        # print("Images shape",imgs.shape)
+        # exit()
+        # x = self.extract_feat(imgs)
+        # print("X shape",x.shape)
+        x=imgs
+        
         if self.backbone_from in ['torchvision', 'timm']:
+            # print("Backbone from",self.backbone_from)
             if len(x.shape) == 4 and (x.shape[2] > 1 or x.shape[3] > 1):
                 # apply adaptive avg pooling
                 x = nn.AdaptiveAvgPool2d(1)(x)
@@ -30,6 +39,7 @@ class Recognizer2D(BaseRecognizer):
             x = x.reshape(x.shape + (1, 1))
 
         if self.with_neck:
+            # print("Neck",self.with_neck)
             x = [
                 each.reshape((-1, num_segs) +
                              each.shape[1:]).transpose(1, 2).contiguous()
@@ -39,11 +49,18 @@ class Recognizer2D(BaseRecognizer):
             x = x.squeeze(2)
             num_segs = 1
             losses.update(loss_aux)
-
+        # print("X shape",x.shape)
+        x = x.squeeze(1)
         cls_score,emb_score = self.cls_head(x, num_segs)#8,59   8,300
         gt_labels = labels.squeeze()#8
+        # print("Classifier score",cls_score.shape)
+        # print("Embedding",emb_score.shape)
+        # print("gt_labels",gt_labels.shape)
+        # print("embs_la",embs_la.shape)
+              
         loss_cls = self.cls_head.loss(cls_score, emb_score,gt_labels,embs_la, **kwargs)#在base的loss里面
         losses.update(loss_cls)
+        
 
         return losses
 
@@ -54,7 +71,8 @@ class Recognizer2D(BaseRecognizer):
         imgs = imgs.reshape((-1, ) + imgs.shape[2:])
         num_segs = imgs.shape[0] // batches
 
-        x = self.extract_feat(imgs)
+        # x = self.extract_feat(imgs)
+        x=imgs
 
         if self.backbone_from in ['torchvision', 'timm']:
             if len(x.shape) == 4 and (x.shape[2] > 1 or x.shape[3] > 1):
@@ -73,15 +91,15 @@ class Recognizer2D(BaseRecognizer):
             x = x.squeeze(2)
             num_segs = 1
 
-        if self.feature_extraction:
-            # perform spatial pooling
-            avg_pool = nn.AdaptiveAvgPool2d(1)
-            x = avg_pool(x)
-            # squeeze dimensions
-            x = x.reshape((batches, num_segs, -1))
-            # temporal average pooling
-            x = x.mean(axis=1)
-            return x
+        # if self.feature_extraction:
+        #     # perform spatial pooling
+        #     avg_pool = nn.AdaptiveAvgPool2d(1)
+        #     x = avg_pool(x)
+        #     # squeeze dimensions
+        #     x = x.reshape((batches, num_segs, -1))
+        #     # temporal average pooling
+        #     x = x.mean(axis=1)
+        #     return x
 
         # When using `TSNHead` or `TPNHead`, shape is [batch_size, num_classes]
         # When using `TSMHead`, shape is [batch_size * num_crops, num_classes]
@@ -92,6 +110,7 @@ class Recognizer2D(BaseRecognizer):
         #   4) `num_clips` in `SampleFrames` or its subclass if `clip_len != 1`
 
         # should have cls_head if not extracting features
+        x = x.squeeze(1)
         cls_score,_ = self.cls_head(x, num_segs)#8,59
 
         assert cls_score.size()[0] % batches == 0

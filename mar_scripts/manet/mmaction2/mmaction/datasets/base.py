@@ -10,7 +10,7 @@ import numpy as np
 import torch
 from mmcv.utils import print_log
 from torch.utils.data import Dataset
-
+import os
 from ..core import (mean_average_precision, mean_class_accuracy,
                     mmit_mean_average_precision, top_k_accuracy)
 from .pipelines import Compose
@@ -248,11 +248,48 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
         """Dump data to json/yaml/pickle strings or files."""
         return mmcv.dump(results, out)
 
+    def pad_or_truncate(self,features, target_len=10):
+        """
+        Pad or truncate a tensor to have shape [target_len, 1, 1408].
+
+        Args:
+            features (Tensor): Input tensor of shape [T, 1, 1408]
+            target_len (int): Desired length along the first dimension
+
+        Returns:
+            Tensor of shape [target_len, 1, 1408]
+        """
+        T, _, D = features.shape
+        if T == target_len:
+            return features
+        elif T < target_len:
+            # Pad with zeros
+            pad_len = target_len - T
+            pad_tensor = torch.zeros(pad_len, 1, D, dtype=features.dtype, device=features.device)
+            return torch.cat([features, pad_tensor], dim=0)
+        else:
+            # Truncate
+            return features[:target_len]
     def prepare_train_frames(self, idx):
         """Prepare the frames for training given the index."""
         results = copy.deepcopy(self.video_infos[idx])
+        # print("results",results)
         results['modality'] = self.modality
         results['start_index'] = self.start_index
+        video_path = results['filename']
+        parts = video_path.strip(os.sep).split(os.sep)
+        relative_path = os.path.join(parts[-2], parts[-1])
+        # print("Video path",)
+        complete_path_videomaev2_features=os.path.join("/data/stars/user/areka/MULTIMEDIA_CONFERANCE_2025/features_ma52_RGB/",relative_path)
+        # print("Video mae v2",complete_path_videomaev2_features)
+        npy_path = os.path.splitext(complete_path_videomaev2_features)[0] + '.npy'
+
+# Load the .npy file
+        if os.path.exists(npy_path):
+            features = np.load(npy_path)
+        else:
+            print("Hi")
+            # print(features)
 
         # prepare tensor in getitem
         # If HVU, type(results['label']) is dict
@@ -260,23 +297,50 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
             onehot = torch.zeros(self.num_classes)
             onehot[results['label']] = 1.
             results['label'] = onehot
-
-        return self.pipeline(results)
+        
+        features_tensor = torch.tensor(features) 
+        features_tensor=self.pad_or_truncate(features_tensor)
+        # print("Pipeline ",type(self.pipeline(results)['imgs']))
+        # exit()
+        # print(f"[DEBUG] idx={idx}, features shape: {features_tensor.shape}")
+        data = self.pipeline(results)
+        data['imgs'] = features_tensor
+        return data
+       
 
     def prepare_test_frames(self, idx):
         """Prepare the frames for testing given the index."""
         results = copy.deepcopy(self.video_infos[idx])
         results['modality'] = self.modality
         results['start_index'] = self.start_index
+        video_path = results['filename']
+        parts = video_path.strip(os.sep).split(os.sep)
+        relative_path = os.path.join(parts[-2], parts[-1])
+        # print("Video path",)
+        complete_path_videomaev2_features=os.path.join("/data/stars/user/areka/MULTIMEDIA_CONFERANCE_2025/features_ma52_RGB/",relative_path)
+        npy_path = os.path.splitext(complete_path_videomaev2_features)[0] + '.npy'
 
+# Load the .npy file
+        if os.path.exists(npy_path):
+            features = np.load(npy_path)
+        else:
+            print("Hi")
         # prepare tensor in getitem
         # If HVU, type(results['label']) is dict
         if self.multi_class and isinstance(results['label'], list):
             onehot = torch.zeros(self.num_classes)
             onehot[results['label']] = 1.
             results['label'] = onehot
-
-        return self.pipeline(results)
+        
+        features_tensor = torch.tensor(features) 
+        features_tensor=self.pad_or_truncate(features_tensor)
+        # print("Pipeline ",type(self.pipeline(results)['imgs']))
+        # exit()
+        # print(f"[DEBUG] idx={idx}, features shape: {features_tensor.shape}")
+        data = self.pipeline(results)
+        data['imgs'] = features_tensor
+        return data
+        # return self.pipeline(results)
 
     def __len__(self):
         """Get the size of the dataset."""
@@ -284,7 +348,9 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
 
     def __getitem__(self, idx):
         """Get the sample for either training or testing given index."""
+        # print("Ask a good question?")
         if self.test_mode:
+            # print("Entering this")
             return self.prepare_test_frames(idx)
 
         return self.prepare_train_frames(idx)

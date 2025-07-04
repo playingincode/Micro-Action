@@ -46,7 +46,7 @@ class VideoDataset(BaseDataset):
         """Load annotation file to get video information."""
         if self.ann_file.endswith('.json'):
             return self.load_json_annotations()
-
+        
         video_infos = []
         with open(self.ann_file, 'r') as fin:
             for line in fin:

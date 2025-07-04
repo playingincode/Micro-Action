@@ -137,3 +137,10 @@ mmaction/tools/*
 # unignore ipython notebook files in demo
 !demo/*.ipynb
 mmaction/.mim
+# test2025-07-04-07-32-28formal/
+# test2025-07-04-07-33-11formal/
+# test2025-07-04-07-57-22formal/
+# 	test2025-07-04-07-59-05formal/
+nef_logs/
+work_dirs/
+test*/

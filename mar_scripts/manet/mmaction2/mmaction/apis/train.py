@@ -205,6 +205,7 @@ def train_model(model,
             runner.register_hook(DistSamplerSeedHook())
 
     if validate:
+        
         eval_cfg = cfg.get('evaluation', {})
         val_dataset = build_dataset(cfg.data.val, dict(test_mode=True))
         dataloader_setting = dict(

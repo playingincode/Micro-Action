@@ -5,11 +5,11 @@ _base_ = [
 
 # dataset settings
 dataset_type = 'VideoDataset'
-data_root = './data/ma52/videos_train/'
-data_root_val = './data/ma52/videos_val/'
+data_root = '/data/stars/share/MA_52/train'
+data_root_val = '/data/stars/share/MA_52/val/'
 data_root_test = './data/ma52/videos_test/'
-ann_file_train = './data/ma52/train_list_videos.txt'
-ann_file_val = './data/ma52/val_list_videos.txt'
+ann_file_train = '/data/stars/share/MA_52/annotations/annotations_train_list_videos.txt'
+ann_file_val = '/data/stars/share/MA_52/annotations/annotations_val_list_videos.txt'
 ann_file_test = './data/ma52/test_list_videos.txt'
 
 img_norm_cfg = dict(
@@ -100,4 +100,4 @@ optimizer = dict(
 )
 # runtime settings
 checkpoint_config = dict(interval=5)
-work_dir = './work_dirs/manet/'
+work_dir = './work_dirs/manet_videomaev2_extracted_features_no_addition/'

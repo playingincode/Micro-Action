@@ -2,6 +2,9 @@
 import torch
 from mmcv.runner import OPTIMIZER_BUILDERS, DefaultOptimizerConstructor
 from mmcv.utils import SyncBatchNorm, _BatchNorm, _ConvNd
+# from torch.nn import LayerNorm
+from mmaction.models.recognizers.tridet_block import LayerNorm as TriDetLayerNorm
+
 
 
 @OPTIMIZER_BUILDERS.register_module()
@@ -58,7 +61,7 @@ class TSMOptimizerConstructor(DefaultOptimizerConstructor):
                 if len(m_params) == 2:
                     normal_bias.append(m_params[1])
             elif isinstance(m,
-                            (_BatchNorm, SyncBatchNorm, torch.nn.GroupNorm)):
+                            (_BatchNorm, SyncBatchNorm, torch.nn.GroupNorm,TriDetLayerNorm)):
                 for param in list(m.parameters()):
                     if param.requires_grad:
                         bn.append(param)

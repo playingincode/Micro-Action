@@ -9,10 +9,11 @@ import warnings
 # import mmcv
 import torch.backends.cudnn as cudnn
 import torch.distributed as dist
-from mmcv import Config, DictAction,mkdir_or_exist
-from mmcv.runner import get_dist_info, init_dist, set_random_seed
-from mmcv.utils import get_git_hash
-
+# from mmcv import 
+from mmengine.dist import get_dist_info, init_dist
+from mmengine.utils import get_git_hash
+from mmdet.apis import set_random_seed
+from mmengine import Config,DictAction,mkdir_or_exist
 from mmaction import __version__
 from mmaction.apis import init_random_seed, train_model
 from mmaction.datasets import build_dataset
@@ -20,7 +21,9 @@ from mmaction.models import build_model
 from mmaction.utils import (collect_env, get_root_logger,
                             register_module_hooks, setup_multi_processes)
 
-
+import random
+import numpy as np
+import torch
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a recognizer')
     parser.add_argument('config', help='train config file path')
@@ -86,15 +89,27 @@ def parse_args():
 
     return args
 
+def set_seed(seed: int = 0, deterministic: bool = False):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+    if deterministic:
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
+# Usage
+# set_seed(seed, deterministic=args.deterministic)
 
 def main():
     
     args = parse_args()
-
+    
     cfg = Config.fromfile(args.config)
 
     cfg.merge_from_dict(args.cfg_options)
-
+    
     # set multi-process settings
     setup_multi_processes(cfg)
 
@@ -103,8 +118,15 @@ def main():
         cudnn.benchmark = True
 
     cur_time = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+    # print(cur_time)
+    # print(args.task_name)
     cur_time += args.task_name
-    args.work_dir+=cur_time
+    # print(args.work_dir)
+    # args.work_dir="test"
+    # print(args.work_dir)
+    # print(args.cfg_options)
+    if args.work_dir is not None:
+        args.work_dir+=cur_time
     # work_dir is determined in this priority:
     # CLI > config file > default (base filename)
     if args.work_dir is not None:
