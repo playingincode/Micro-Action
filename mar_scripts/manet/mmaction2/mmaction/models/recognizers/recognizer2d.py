@@ -43,8 +43,8 @@ class Recognizer2D(BaseRecognizer):
         p=self.Global_Relational_Block(self.norm1(imgs).permute(0,2,1))
         # print("P shape",p.shape)
         imgs = imgs + p.permute(0,2,1)
-        y,_=self.SGP_block(self.norm2(imgs),mask_bool)
-        imgs = imgs + y
+        # y,_=self.SGP_block(imgs,mask_bool)
+        # imgs = imgs + y
         imgs = imgs.permute(0, 2, 1)
 
 
@@ -110,8 +110,8 @@ class Recognizer2D(BaseRecognizer):
         p=self.Global_Relational_Block(self.norm1(imgs).permute(0,2,1))
         # print("P shape",p.shape)
         imgs = imgs + p.permute(0,2,1)
-        y,_=self.SGP_block(self.norm2(imgs),mask_bool)
-        imgs = imgs + y
+        # y,_=self.SGP_block(imgs,mask_bool)
+        # imgs = imgs + y
         imgs = imgs.permute(0, 2, 1)
         # print(imgs_1.shape, imgs_2.shape)
 
