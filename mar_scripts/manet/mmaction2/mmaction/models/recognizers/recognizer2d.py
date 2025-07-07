@@ -26,18 +26,26 @@ class Recognizer2D(BaseRecognizer):
         # print("Images shape",imgs.shape)
         # print("Mask book",mask_bool.shape)
 
-        imgs_1,_= self.SGP_block(imgs,mask_bool)
+        # imgs_1,_= self.SGP_block(imgs,mask_bool)
 
-        imgs_2, _ = self.SGP_block_2(imgs, mask_bool)
-        # print(imgs_1.shape, imgs_2.shape)
+        #What Aglind did
+        # imgs_2, _ = self.SGP_block_2(imgs, mask_bool)
+        # # print(imgs_1.shape, imgs_2.shape)
 
-        imgs_1 = imgs_1.permute(2, 0, 1)  # [T1, B, C] - query
-        imgs_2 = imgs_2.permute(2, 0, 1)  # [T2, B, C] - key & value
+        # imgs_1 = imgs_1.permute(2, 0, 1)  # [T1, B, C] - query
+        # imgs_2 = imgs_2.permute(2, 0, 1)  # [T2, B, C] - key & value
 
-        attn_output, _ = self.attn(query=imgs_1, key=imgs_2, value=imgs_2)
-        imgs = attn_output.permute(0, 2, 1)
-        imgs = imgs.permute(0, 2, 1)
+        # attn_output, _ = self.attn(query=imgs_1, key=imgs_2, value=imgs_2)
+        # imgs = attn_output.permute(0, 2, 1)
+        
         # imgs = imgs + self.Global_Relational_Block(self.norm_layer(imgs))
+        # print("Images shape",imgs.shape)
+        p=self.Global_Relational_Block(self.norm1(imgs).permute(0,2,1))
+        # print("P shape",p.shape)
+        imgs = imgs + p.permute(0,2,1)
+        y,_=self.SGP_block(self.norm2(imgs),mask_bool)
+        imgs = imgs + y
+        imgs = imgs.permute(0, 2, 1)
 
 
 
@@ -96,17 +104,23 @@ class Recognizer2D(BaseRecognizer):
         mask_bool = mask_bool.unsqueeze(1).cuda()
         # print("Images shape",imgs.shape)
         # print("Mask book",mask_bool.shape)
-        imgs_1, _ = self.SGP_block(imgs, mask_bool)
+        # imgs_1, _ = self.SGP_block(imgs, mask_bool)
 
-        imgs_2, _ = self.SGP_block_2(imgs, mask_bool)
+        # imgs_2, _ = self.SGP_block_2(imgs, mask_bool)
+        p=self.Global_Relational_Block(self.norm1(imgs).permute(0,2,1))
+        # print("P shape",p.shape)
+        imgs = imgs + p.permute(0,2,1)
+        y,_=self.SGP_block(self.norm2(imgs),mask_bool)
+        imgs = imgs + y
+        imgs = imgs.permute(0, 2, 1)
         # print(imgs_1.shape, imgs_2.shape)
 
-        imgs_1 = imgs_1.permute(2, 0, 1)  # [T1, B, C] - query
-        imgs_2 = imgs_2.permute(2, 0, 1)  # [T2, B, C] - key & value
+        # imgs_1 = imgs_1.permute(2, 0, 1)  # [T1, B, C] - query
+        # imgs_2 = imgs_2.permute(2, 0, 1)  # [T2, B, C] - key & value
 
-        attn_output, _ = self.attn(query=imgs_1, key=imgs_2, value=imgs_2)
-        imgs = attn_output.permute(0, 2, 1)
-        imgs = imgs.permute(0, 2, 1)
+        # attn_output, _ = self.attn(query=imgs_1, key=imgs_2, value=imgs_2)
+        # imgs = attn_output.permute(0, 2, 1)
+        # imgs = imgs.permute(0, 2, 1)
         imgs = imgs.reshape((-1, ) + imgs.shape[2:])
         num_segs = imgs.shape[0] // batches
 
