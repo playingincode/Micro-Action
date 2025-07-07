@@ -100,4 +100,4 @@ optimizer = dict(
 )
 # runtime settings
 checkpoint_config = dict(interval=5)
-work_dir = './work_dirs/manet_videomaev2_extracted_features_sgp/'
+work_dir = './work_dirs/manet_videomaev2_extracted_features_sgp_self_attention/'

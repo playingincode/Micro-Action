@@ -28,6 +28,7 @@ class GradCAM:
         from ..models.recognizers import Recognizer2D, Recognizer3D
         if isinstance(model, Recognizer2D):
             self.is_recognizer2d = True
+            # print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
         elif isinstance(model, Recognizer3D):
             self.is_recognizer2d = False
         else:

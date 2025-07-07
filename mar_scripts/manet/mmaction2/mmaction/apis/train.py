@@ -63,6 +63,8 @@ def train_model(model,
                 test=dict(test_best=False, test_last=False),
                 timestamp=None,
                 meta=None):
+
+
     """Train model entry function.
 
     Args:
@@ -118,6 +120,9 @@ def train_model(model,
         ]
 
     # put model on gpus
+    logger = get_root_logger(log_level='INFO')
+
+
     if distributed:
         find_unused_parameters = cfg.get('find_unused_parameters', False)
         # Sets the `find_unused_parameters` parameter in
@@ -131,6 +136,7 @@ def train_model(model,
                 broadcast_buffers=False,
                 find_unused_parameters=find_unused_parameters))
     else:
+
         model = build_dp(
             model, default_device, default_args=dict(device_ids=cfg.gpu_ids))
 
@@ -205,7 +211,7 @@ def train_model(model,
             runner.register_hook(DistSamplerSeedHook())
 
     if validate:
-        
+
         eval_cfg = cfg.get('evaluation', {})
         val_dataset = build_dataset(cfg.data.val, dict(test_mode=True))
         dataloader_setting = dict(

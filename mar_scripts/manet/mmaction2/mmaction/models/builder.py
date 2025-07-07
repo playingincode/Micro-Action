@@ -49,6 +49,7 @@ def build_recognizer(cfg, train_cfg=None, test_cfg=None):
     assert cfg.get(
         'test_cfg'
     ) is None or test_cfg is None, 'test_cfg specified in both outer field and model field '  # noqa: E501
+
     return RECOGNIZERS.build(
         cfg, default_args=dict(train_cfg=train_cfg, test_cfg=test_cfg))
 
@@ -60,6 +61,7 @@ def build_loss(cfg):
 
 def build_localizer(cfg):
     """Build localizer."""
+    print(cfg)
     return LOCALIZERS.build(cfg)
 
 
@@ -87,6 +89,8 @@ def build_model(cfg, train_cfg=None, test_cfg=None):
                      'LOCALIZERS, RECOGNIZERS or DETECTORS')
 
 
+
 def build_neck(cfg):
     """Build neck."""
+
     return NECKS.build(cfg)

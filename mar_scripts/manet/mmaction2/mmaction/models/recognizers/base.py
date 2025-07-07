@@ -11,7 +11,7 @@ from mmcv.runner import auto_fp16
 from mmcv.utils import digit_version
 
 from .. import builder
-from .tridet_block import SGPBlock
+from .tridet_block import SGPBlock, Global_Relational_Block
 
 class BaseRecognizer(nn.Module, metaclass=ABCMeta):
     """Base class for recognizers.
@@ -39,8 +39,15 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
                  test_cfg=None):
         super().__init__()
         # record the source of the backbone
+        # self.norm_layer = nn.LayerNorm(eps=1e-5)
         self.backbone_from = 'mmaction2'
+        self.attn = nn.MultiheadAttention(embed_dim=1408, num_heads=8, batch_first=False)
         self.SGP_block=SGPBlock(1408,1,1,k=1.5,n_hidden=768,init_conv_vars=0)
+        self.SGP_block_2 = SGPBlock(1408, 1, n_ds_stride=2, k=1.5, n_hidden=768, init_conv_vars=0)
+        self.Global_Relational_Block = Global_Relational_Block(768, num_heads=4)
+
+
+
         if backbone['type'].startswith('mmcls.'):
             
             try:
@@ -173,6 +180,7 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
         else:
             # print("Entering else")
             x = self.backbone(imgs)
+
         return x
 
     def average_clip(self, cls_score, num_segs=1):
@@ -213,6 +221,7 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
 
     @abstractmethod
     def forward_train(self, imgs, labels, **kwargs):
+        # print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
         """Defines the computation performed at every call when training."""
 
     @abstractmethod
@@ -276,6 +285,7 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
         return self.forward_test(imgs,label,emb, **kwargs)
 
     def train_step(self, data_batch, optimizer, **kwargs):
+
         """The iteration step during training.
         训练期间的迭代步骤。
         此方法定义了训练期间的迭代步骤

@@ -35,6 +35,7 @@ class NL3DWrapper(nn.Module):
                    w).transpose(1, 2).contiguous()
         x = self.non_local_block(x)
         x = x.transpose(1, 2).contiguous().view(n, c, h, w)
+
         return x
 
 
@@ -90,7 +91,7 @@ class TemporalShift(nn.Module):
         y = self.fcce(y).view(b, c, 1, 1)     
         x_p2=x_shift * y.expand_as(x_shift)
         x_shift = self.shift(x_p2, self.num_segments, shift_div=self.shift_div)
-        
+
         return self.net(x_shift)
 
     @staticmethod

@@ -19,14 +19,29 @@ class Recognizer2D(BaseRecognizer):
         imgs=imgs.squeeze(2)
         imgs=imgs.permute(0,2,1)
         # print("After Permute and squeeze shape",imgs.shape)
-       
+
         mask_bool = torch.ones((batches, 10), dtype=torch.bool)
         mask_bool = mask_bool.unsqueeze(1).cuda()
+
         # print("Images shape",imgs.shape)
         # print("Mask book",mask_bool.shape)
-        imgs,_=self.SGP_block(imgs,mask_bool)
-        # print("After SGP",imgs.shape)
-        imgs=imgs.permute(0,2,1)
+
+        imgs_1,_= self.SGP_block(imgs,mask_bool)
+
+        imgs_2, _ = self.SGP_block_2(imgs, mask_bool)
+        # print(imgs_1.shape, imgs_2.shape)
+
+        imgs_1 = imgs_1.permute(2, 0, 1)  # [T1, B, C] - query
+        imgs_2 = imgs_2.permute(2, 0, 1)  # [T2, B, C] - key & value
+
+        attn_output, _ = self.attn(query=imgs_1, key=imgs_2, value=imgs_2)
+        imgs = attn_output.permute(0, 2, 1)
+        imgs = imgs.permute(0, 2, 1)
+        # imgs = imgs + self.Global_Relational_Block(self.norm_layer(imgs))
+
+
+
+
         imgs = imgs.reshape((-1, ) + imgs.shape[2:])
         num_segs = imgs.shape[0] // batches
 
@@ -36,7 +51,7 @@ class Recognizer2D(BaseRecognizer):
         # x = self.extract_feat(imgs)
         # print("X shape",x.shape)
         x=imgs
-        
+
         if self.backbone_from in ['torchvision', 'timm']:
             # print("Backbone from",self.backbone_from)
             if len(x.shape) == 4 and (x.shape[2] > 1 or x.shape[3] > 1):
@@ -64,10 +79,10 @@ class Recognizer2D(BaseRecognizer):
         # print("Embedding",emb_score.shape)
         # print("gt_labels",gt_labels.shape)
         # print("embs_la",embs_la.shape)
-              
+
         loss_cls = self.cls_head.loss(cls_score, emb_score,gt_labels,embs_la, **kwargs)#在base的loss里面
         losses.update(loss_cls)
-        
+
 
         return losses
 
@@ -81,9 +96,17 @@ class Recognizer2D(BaseRecognizer):
         mask_bool = mask_bool.unsqueeze(1).cuda()
         # print("Images shape",imgs.shape)
         # print("Mask book",mask_bool.shape)
-        imgs,_=self.SGP_block(imgs,mask_bool)
-        # print("After SGP",imgs.shape)
-        imgs=imgs.permute(0,2,1)
+        imgs_1, _ = self.SGP_block(imgs, mask_bool)
+
+        imgs_2, _ = self.SGP_block_2(imgs, mask_bool)
+        # print(imgs_1.shape, imgs_2.shape)
+
+        imgs_1 = imgs_1.permute(2, 0, 1)  # [T1, B, C] - query
+        imgs_2 = imgs_2.permute(2, 0, 1)  # [T2, B, C] - key & value
+
+        attn_output, _ = self.attn(query=imgs_1, key=imgs_2, value=imgs_2)
+        imgs = attn_output.permute(0, 2, 1)
+        imgs = imgs.permute(0, 2, 1)
         imgs = imgs.reshape((-1, ) + imgs.shape[2:])
         num_segs = imgs.shape[0] // batches
 
@@ -97,7 +120,9 @@ class Recognizer2D(BaseRecognizer):
             x = x.reshape((x.shape[0], -1))
             x = x.reshape(x.shape + (1, 1))
 
+
         if self.with_neck:
+            print(self.with_neck)
             x = [
                 each.reshape((-1, num_segs) +
                              each.shape[1:]).transpose(1, 2).contiguous()
@@ -133,6 +158,7 @@ class Recognizer2D(BaseRecognizer):
         # calculate num_crops automatically
         cls_score = self.average_clip(cls_score,
                                       cls_score.size()[0] // batches)
+
         return cls_score
 
     def _do_fcn_test(self, imgs):

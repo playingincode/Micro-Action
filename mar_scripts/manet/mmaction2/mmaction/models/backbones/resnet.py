@@ -540,6 +540,7 @@ class ResNet(nn.Module):
         """
         x = self.conv1(x)
         x = self.maxpool(x)
+
         outs = []
         for i, layer_name in enumerate(self.res_layers):
             res_layer = getattr(self, layer_name)

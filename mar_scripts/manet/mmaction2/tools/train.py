@@ -12,10 +12,12 @@ import torch.distributed as dist
 # from mmcv import 
 from mmengine.dist import get_dist_info, init_dist
 from mmengine.utils import get_git_hash
-from mmdet.apis import set_random_seed
+# from mmdet.apis import set_random_seed
+from mmengine.runner import set_random_seed
 from mmengine import Config,DictAction,mkdir_or_exist
 from mmaction import __version__
 from mmaction.apis import init_random_seed, train_model
+
 from mmaction.datasets import build_dataset
 from mmaction.models import build_model
 from mmaction.utils import (collect_env, get_root_logger,
@@ -103,6 +105,7 @@ def set_seed(seed: int = 0, deterministic: bool = False):
 # set_seed(seed, deterministic=args.deterministic)
 
 def main():
+
     
     args = parse_args()
     
@@ -238,6 +241,7 @@ def main():
             config=cfg.pretty_text)
 
     test_option = dict(test_last=args.test_last, test_best=args.test_best)
+
     train_model(
         model,
         datasets,
@@ -250,4 +254,5 @@ def main():
 
 
 if __name__ == '__main__':
+
     main()

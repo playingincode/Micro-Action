@@ -58,4 +58,5 @@ def trunc_normal_(tensor, mean=0., std=1., a=-2., b=2.):
         >>> w = torch.empty(3, 5)
         >>> nn.init.trunc_normal_(w)
     """
+    print('a')
     return _no_grad_trunc_normal_(tensor, mean, std, a, b)

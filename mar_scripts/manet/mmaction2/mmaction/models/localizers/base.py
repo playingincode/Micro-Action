@@ -20,6 +20,7 @@ class BaseTAPGenerator(nn.Module, metaclass=ABCMeta):
 
     @abstractmethod
     def forward_train(self, *args, **kwargs):
+        # print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
         """Defines the computation performed at training."""
 
     @abstractmethod
