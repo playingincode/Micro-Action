@@ -51,13 +51,29 @@ class VideoDataset(BaseDataset):
         with open(self.ann_file, 'r') as fin:
             for line in fin:
                 line_split = line.strip().split()
+                # print("Line split",line_split)
                 if self.multi_class:
+                    # print("Hi")
                     assert self.num_classes is not None
                     filename, label = line_split[0], line_split[1:]
                     label = list(map(int, label))
                 else:
+                    
                     filename, label = line_split
                     label = int(label)
+                    # if 0 <= label <= 10:
+                    #     label=0
+                    # elif 11 <= label <= 23:
+                    #     label=1
+                    # elif 24 <= label <= 31:
+                    #     label=2
+                    # elif 32 <= label <= 37:
+                    #     label=3
+                    # elif 38 <= label <= 47:
+                    #     label=4
+                    # elif 48 <= label <= 51:
+                    #     label=5
+                    
                 if self.data_prefix is not None:
                     filename = osp.join(self.data_prefix, filename)
                 emb=self.embeddings[label]

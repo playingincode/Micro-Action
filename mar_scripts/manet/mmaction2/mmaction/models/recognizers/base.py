@@ -43,12 +43,26 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
         self.backbone_from = 'mmaction2'
         self.attn = nn.MultiheadAttention(embed_dim=1408, num_heads=8, batch_first=False)
         self.SGP_block=SGPBlock(1408,1,1,k=1.5,n_hidden=768,init_conv_vars=0)
-        self.SGP_block_2 = SGPBlock(1408, 1, n_ds_stride=2, k=1.5, n_hidden=768, init_conv_vars=0)
+        self.SGP_block2=SGPBlock(1408,1,1,k=1.5,n_hidden=768,init_conv_vars=0)
+        self.SGP_block3=SGPBlock(1408,1,1,k=1.5,n_hidden=768,init_conv_vars=0)
+        self.SGP_block4=SGPBlock(1408,1,1,k=1.5,n_hidden=768,init_conv_vars=0)
+        # self.SGP_block_2 = SGPBlock(1408, 1, n_ds_stride=2, k=1.5, n_hidden=768, init_conv_vars=0)
         self.Global_Relational_Block = Global_Relational_Block(1408, num_heads=4)
+        self.Global_Relational_Block2 = Global_Relational_Block(1408, num_heads=4)
+        self.Global_Relational_Block3 = Global_Relational_Block(1408, num_heads=4)
+        self.Global_Relational_Block4 = Global_Relational_Block(1408, num_heads=4)
 
-        self.norm1=TriDetLayerNorm(1408)
-        self.norm2=TriDetLayerNorm(1408)
+        # self.norm1=TriDetLayerNorm(1408)
+        # self.norm2=TriDetLayerNorm(1408)
+        # self.norm3=TriDetLayerNorm(1408)
+        # self.norm4=TriDetLayerNorm(1408)
+        # self.norm5=TriDetLayerNorm(1408)
+        # self.norm6=TriDetLayerNorm(1408)
+        # self.norm7=TriDetLayerNorm(1408)
+        # self.norm8=TriDetLayerNorm(1408)
 
+
+        
         if backbone['type'].startswith('mmcls.'):
             
             try:

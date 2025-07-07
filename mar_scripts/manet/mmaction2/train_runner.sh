@@ -1,7 +1,7 @@
 #!/bin/bash
-#OAR -p gpu='YES' and host='nefgpu57.inria.fr'
+#OAR -p gpu='YES' and host='nefgpu56.inria.fr'
 #OAR -l /nodes=1/gpunum=1,walltime=72:00:00
-#OAR --name manet_videomae_ms_tct_without_sgp_global
+#OAR --name manet_videomae_ms_tct_with_sgp_four_modules
 #OAR --stdout nef_logs/%jobname%.%jobid%.out
 #OAR --stderr nef_logs/%jobname%.%jobid%.err
 

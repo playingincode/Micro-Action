@@ -4,7 +4,7 @@ from torch import nn
 
 from ..builder import RECOGNIZERS
 from .base import BaseRecognizer
-
+import torch.nn.functional as F
 
 @RECOGNIZERS.register_module()
 class Recognizer2D(BaseRecognizer):
@@ -17,6 +17,8 @@ class Recognizer2D(BaseRecognizer):
         batches = imgs.shape[0]
         # print("Images shape",imgs.shape)
         imgs=imgs.squeeze(2)
+        original_input=imgs
+        # print("Original input",original_input.shape)
         imgs=imgs.permute(0,2,1)
         # print("After Permute and squeeze shape",imgs.shape)
 
@@ -40,12 +42,55 @@ class Recognizer2D(BaseRecognizer):
         
         # imgs = imgs + self.Global_Relational_Block(self.norm_layer(imgs))
         # print("Images shape",imgs.shape)
-        p=self.Global_Relational_Block(self.norm1(imgs).permute(0,2,1))
+        #Module 1
+        p=self.Global_Relational_Block(imgs.permute(0,2,1))
         # print("P shape",p.shape)
         imgs = imgs + p.permute(0,2,1)
-        # y,_=self.SGP_block(imgs,mask_bool)
-        # imgs = imgs + y
+        y,_=self.SGP_block(imgs,mask_bool)
+        imgs = imgs + y
+        
+#         imgs_t = imgs  # (B, C, T)
+
+# # Use F.max_pool1d with stride=1 and padding
+#         imgs_pooled = F.max_pool1d(imgs_t, kernel_size=3, stride=1, padding=1)  # same T
+
+#         imgs = imgs_pooled
+        #Module 2
+        p2=self.Global_Relational_Block2(imgs.permute(0,2,1))
+        
+       
+        
+        # print("Imgs shape",imgs.shape)
+        imgs = imgs + p2.permute(0,2,1)
+        y2,_=self.SGP_block2(imgs,mask_bool)
+        imgs = imgs + y2
+        
+        
+        #Module 3
+        p3=self.Global_Relational_Block3(imgs.permute(0,2,1))
+        
+       
+        
+        # print("Imgs shape",imgs.shape)
+        imgs = imgs + p3.permute(0,2,1)
+        
+        y3,_=self.SGP_block3(imgs,mask_bool)
+        imgs = imgs + y3
+        
+        #Module 4
+        
+        p4=self.Global_Relational_Block4(imgs.permute(0,2,1))
+        
+       
+        
+        # print("Imgs shape",imgs.shape)
+        imgs = imgs + p4.permute(0,2,1)
+        y4,_=self.SGP_block4(imgs,mask_bool)
+        imgs = imgs + y4
         imgs = imgs.permute(0, 2, 1)
+        
+        
+   
 
 
 
@@ -99,6 +144,7 @@ class Recognizer2D(BaseRecognizer):
         testing and gradcam."""
         batches = imgs.shape[0]
         imgs=imgs.squeeze(2)
+        # original_input=imgs
         imgs=imgs.permute(0,2,1)
         mask_bool = torch.ones((batches, 10), dtype=torch.bool)
         mask_bool = mask_bool.unsqueeze(1).cuda()
@@ -107,12 +153,59 @@ class Recognizer2D(BaseRecognizer):
         # imgs_1, _ = self.SGP_block(imgs, mask_bool)
 
         # imgs_2, _ = self.SGP_block_2(imgs, mask_bool)
-        p=self.Global_Relational_Block(self.norm1(imgs).permute(0,2,1))
+        # p=self.Global_Relational_Block(self.norm1(imgs).permute(0,2,1))
+        #Module 1
+        p=self.Global_Relational_Block(imgs.permute(0,2,1))
         # print("P shape",p.shape)
         imgs = imgs + p.permute(0,2,1)
-        # y,_=self.SGP_block(imgs,mask_bool)
-        # imgs = imgs + y
+        y,_=self.SGP_block(imgs,mask_bool)
+        imgs = imgs + y
+        
+#         imgs_t = imgs  # (B, C, T)
+
+# # Use F.max_pool1d with stride=1 and padding
+#         imgs_pooled = F.max_pool1d(imgs_t, kernel_size=3, stride=1, padding=1)  # same T
+
+#         imgs = imgs_pooled
+        #Module 2
+        p2=self.Global_Relational_Block2(imgs.permute(0,2,1))
+        
+       
+        
+        # print("Imgs shape",imgs.shape)
+        imgs = imgs + p2.permute(0,2,1)
+        y2,_=self.SGP_block2(imgs,mask_bool)
+        imgs = imgs + y2
+        
+        
+        #Module 3
+        p3=self.Global_Relational_Block3(imgs.permute(0,2,1))
+        
+       
+        
+        # print("Imgs shape",imgs.shape)
+        imgs = imgs + p3.permute(0,2,1)
+        
+        y3,_=self.SGP_block3(imgs,mask_bool)
+        imgs = imgs + y3
+        
+        #Module 4
+        
+        p4=self.Global_Relational_Block4(imgs.permute(0,2,1))
+        
+       
+        
+        # print("Imgs shape",imgs.shape)
+        imgs = imgs + p4.permute(0,2,1)
+        y4,_=self.SGP_block4(imgs,mask_bool)
+        imgs = imgs + y4
+        # imgs=imgs+original_input.permute(0,2,1)
         imgs = imgs.permute(0, 2, 1)
+        # print("P shape",p.shape)
+        # imgs = imgs + p.permute(0,2,1)
+        # # y,_=self.SGP_block(imgs,mask_bool)
+        # # imgs = imgs + y
+        # imgs = imgs.permute(0, 2, 1)
         # print(imgs_1.shape, imgs_2.shape)
 
         # imgs_1 = imgs_1.permute(2, 0, 1)  # [T1, B, C] - query
