@@ -1,7 +1,7 @@
 #!/bin/bash
 #OAR -p gpu='YES' and host='nefgpu46.inria.fr'
 #OAR -l /nodes=1/gpunum=1,walltime=72:00:00
-#OAR --name manet_videomaev2_extracted_features_no_additiont
+#OAR --name manet_videomae_ms_tct_with_sgp_four_modules
 #OAR --stdout nef_logs/%jobname%.%jobid%.out
 #OAR --stderr nef_logs/%jobname%.%jobid%.err
 
@@ -26,5 +26,5 @@ nvidia-smi || { echo "NVIDIA driver issue"; exit 1; }
 
 export PATH=/pytorch_env/bin:$PATH
 
-
+export CUBLAS_WORKSPACE_CONFIG=:4096:8
 python -u tools/train.py configs/recognition/manet/manet.py --seed=0 --deterministic
