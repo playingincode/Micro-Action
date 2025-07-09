@@ -58,8 +58,28 @@ class VideoDataset(BaseDataset):
                 else:
                     filename, label = line_split
                     label = int(label)
+                    if 0 <= label <= 10:
+                        label=0
+                        emb=self.embeddings[0]
+                    elif 11 <= label <= 23:
+                        label=1
+                        emb=self.embeddings[11]
+                    elif 24 <= label <= 31:
+                        label=2
+                        emb=self.embeddings[24]
+                    elif 32 <= label <= 37:
+                        label=3
+                        emb=self.embeddings[32]
+                    elif 38 <= label <= 47:
+                        label=4
+                        emb=self.embeddings[38]
+                    elif 48 <= label <= 51:
+                        label=5
+                        emb=self.embeddings[48]
+                    # else:
+                    #     continue
                 if self.data_prefix is not None:
                     filename = osp.join(self.data_prefix, filename)
-                emb=self.embeddings[label]
+                # emb=self.embeddings[label]
                 video_infos.append(dict(filename=filename, label=label,emb=emb))
         return video_infos
