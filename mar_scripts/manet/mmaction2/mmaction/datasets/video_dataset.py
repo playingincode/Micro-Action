@@ -4,7 +4,7 @@ import os.path as osp
 from .base import BaseDataset
 from .builder import DATASETS
 import numpy as np
-
+import torch
 @DATASETS.register_module()
 class VideoDataset(BaseDataset):
     """Video dataset for action recognition.
@@ -59,23 +59,25 @@ class VideoDataset(BaseDataset):
                     filename, label = line_split
                     label = int(label)
                     if 0 <= label <= 10:
-                        label=0
-                        emb=self.embeddings[0]
+                        # label = 0
+                        # if 0 <= label <= 10:
+                        label = 0
+                        emb = np.mean(self.embeddings[0:11], axis=0)
                     elif 11 <= label <= 23:
-                        label=1
-                        emb=self.embeddings[11]
+                        label = 1
+                        emb = np.mean(self.embeddings[11:24], axis=0)
                     elif 24 <= label <= 31:
-                        label=2
-                        emb=self.embeddings[24]
+                        label = 2
+                        emb = np.mean(self.embeddings[24:32], axis=0)
                     elif 32 <= label <= 37:
-                        label=3
-                        emb=self.embeddings[32]
+                        label = 3
+                        emb = np.mean(self.embeddings[32:38], axis=0)
                     elif 38 <= label <= 47:
-                        label=4
-                        emb=self.embeddings[38]
+                        label = 4
+                        emb = np.mean(self.embeddings[38:48], axis=0)
                     elif 48 <= label <= 51:
-                        label=5
-                        emb=self.embeddings[48]
+                        label = 5
+                        emb = np.mean(self.embeddings[48:52], axis=0)
                     # else:
                     #     continue
                 if self.data_prefix is not None:
