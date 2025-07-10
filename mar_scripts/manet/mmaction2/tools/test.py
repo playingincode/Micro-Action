@@ -138,6 +138,7 @@ def turn_off_pretrained(cfg):
 def inference_pytorch(args, cfg, distributed, data_loader):
     """Get predictions by pytorch models."""
     if args.average_clips is not None:
+        # print("HI i am in average clips")
         # You can set average_clips during testing, it will override the
         # original setting
         if cfg.model.get('test_cfg') is None and cfg.get('test_cfg') is None:
@@ -153,16 +154,39 @@ def inference_pytorch(args, cfg, distributed, data_loader):
     turn_off_pretrained(cfg.model)
 
     # build the model and load checkpoint
+    
     model = build_model(
         cfg.model, train_cfg=None, test_cfg=cfg.get('test_cfg'))
+    
+    model1= build_model(
+        cfg.model1, train_cfg=None, test_cfg=cfg.get('test_cfg'))
+    # six_classes_mode= build_model(
+    #     cfg.model, train_cfg=None, test_cfg=cfg.get('test_cfg'))
+    
+    # body_head_model= build_model(
+    #     cfg.model, train_cfg=None, test_cfg=cfg.get('test_cfg'))
+    
+    # upper_limb_model= build_model(
+    #     cfg.model, train_cfg=None, test_cfg=cfg.get('test_cfg'))
+    
+    # lower_limb_model= build_model(
+    #     cfg.model, train_cfg=None, test_cfg=cfg.get('test_cfg'))
+    
+    # head_hand_model= build_model(
+    #     cfg.model, train_cfg=None, test_cfg=cfg.get('test_cfg'))
+    
+    # leg_hand_model= build_model(
+    #     cfg.model, train_cfg=None, test_cfg=cfg.get('test_cfg'))
 
-    if len(cfg.module_hooks) > 0:
-        register_module_hooks(model, cfg.module_hooks)
+    # if len(cfg.module_hooks) > 0:
+    #     register_module_hooks(model, cfg.module_hooks)
 
     fp16_cfg = cfg.get('fp16', None)
     if fp16_cfg is not None:
         wrap_fp16_model(model)
+        wrap_fp16_model(model1)
     load_checkpoint(model, args.checkpoint, map_location='cpu')
+    load_checkpoint(model)
 
     if args.fuse_conv_bn:
         model = fuse_conv_bn(model)
