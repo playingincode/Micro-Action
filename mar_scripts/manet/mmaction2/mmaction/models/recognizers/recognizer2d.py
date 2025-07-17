@@ -10,7 +10,7 @@ from .base import BaseRecognizer
 class Recognizer2D(BaseRecognizer):
     """2D recognizer model framework."""
 
-    def forward_train(self, imgs, labels,embs_la, **kwargs):
+    def forward_train(self, imgs, labels,embs_la,skeleton_data, **kwargs):
         """Defines the computation performed at every call when training."""
 
         assert self.with_cls_head
@@ -40,6 +40,7 @@ class Recognizer2D(BaseRecognizer):
         
         # imgs = imgs + self.Global_Relational_Block(self.norm_layer(imgs))
         # print("Images shape",imgs.shape)
+        # print("Skeleton data",skeleton_data)
         p=self.Global_Relational_Block(imgs.permute(0,2,1))
         # print("P shape",p.shape)
         imgs = imgs + p.permute(0,2,1)
@@ -81,12 +82,23 @@ class Recognizer2D(BaseRecognizer):
             losses.update(loss_aux)
         # print("X shape",x.shape)
         # x = x.squeeze(1)
+        # print("Skeleton data shape",skeleton_data.shape)
+        x = x.view(batches, 10, -1)
+        x= x.mean(dim=1) 
+        skeleton_data = skeleton_data.float()
+        skeleton_features=self.unik(skeleton_data,return_features=True)
+        x= torch.cat([x, skeleton_features], dim=1)
+        
+        # print("skeleton features",skeleton_features.shape)
+        # print("X",x.shape)
         cls_score,emb_score = self.cls_head(x, num_segs)#8,59   8,300
+        # print("Cls_score",cls_score.shape)
         gt_labels = labels.squeeze()#8
         # print("Classifier score",cls_score.shape)
         # print("Embedding",emb_score.shape)
         # print("gt_labels",gt_labels.shape)
         # print("embs_la",embs_la.shape)
+
 
         loss_cls = self.cls_head.loss(cls_score, emb_score,gt_labels,embs_la, **kwargs)#在base的loss里面
         losses.update(loss_cls)
@@ -94,57 +106,83 @@ class Recognizer2D(BaseRecognizer):
 
         return losses
 
-    def _do_test(self, imgs,labels,embs_la):
+    def _do_test(self, imgs,labels,embs_la,skeleton_data):
         """Defines the computation performed at every call when evaluation,
         testing and gradcam."""
         batches = imgs.shape[0]
+        # print("Images shape",imgs.shape)
         imgs=imgs.squeeze(2)
         imgs=imgs.permute(0,2,1)
+        # print("After Permute and squeeze shape",imgs.shape)
+
         mask_bool = torch.ones((batches, 10), dtype=torch.bool)
         mask_bool = mask_bool.unsqueeze(1).cuda()
+
         # print("Images shape",imgs.shape)
         # print("Mask book",mask_bool.shape)
-        # imgs_1, _ = self.SGP_block(imgs, mask_bool)
 
+        # imgs_1,_= self.SGP_block(imgs,mask_bool)
+
+        #What Aglind did
         # imgs_2, _ = self.SGP_block_2(imgs, mask_bool)
-        p=self.Global_Relational_Block(imgs.permute(0,2,1))
-        # print("P shape",p.shape)
-        imgs = imgs + p.permute(0,2,1)
-        y,_=self.SGP_block(imgs,mask_bool)
-        imgs = imgs + y
-        imgs = imgs.permute(0, 2, 1)
-        # print(imgs_1.shape, imgs_2.shape)
+        # # print(imgs_1.shape, imgs_2.shape)
 
         # imgs_1 = imgs_1.permute(2, 0, 1)  # [T1, B, C] - query
         # imgs_2 = imgs_2.permute(2, 0, 1)  # [T2, B, C] - key & value
 
         # attn_output, _ = self.attn(query=imgs_1, key=imgs_2, value=imgs_2)
         # imgs = attn_output.permute(0, 2, 1)
-        # imgs = imgs.permute(0, 2, 1)
+        
+        # imgs = imgs + self.Global_Relational_Block(self.norm_layer(imgs))
+        # print("Images shape",imgs.shape)
+        # print("Skeleton data",skeleton_data)
+        p=self.Global_Relational_Block(imgs.permute(0,2,1))
+        # print("P shape",p.shape)
+        imgs = imgs + p.permute(0,2,1)
+        y,_=self.SGP_block(imgs,mask_bool)
+        imgs = imgs + y
+        imgs = imgs.permute(0, 2, 1)
+
+
+
+
         imgs = imgs.reshape((-1, ) + imgs.shape[2:])
         num_segs = imgs.shape[0] // batches
 
+        losses = dict()
+        # print("Images shape",imgs.shape)
+        # exit()
         # x = self.extract_feat(imgs)
+        # print("X shape",x.shape)
         x=imgs
 
         if self.backbone_from in ['torchvision', 'timm']:
+            # print("Backbone from",self.backbone_from)
             if len(x.shape) == 4 and (x.shape[2] > 1 or x.shape[3] > 1):
                 # apply adaptive avg pooling
                 x = nn.AdaptiveAvgPool2d(1)(x)
             x = x.reshape((x.shape[0], -1))
             x = x.reshape(x.shape + (1, 1))
 
-
         if self.with_neck:
-            print(self.with_neck)
+            # print("Neck",self.with_neck)
             x = [
                 each.reshape((-1, num_segs) +
                              each.shape[1:]).transpose(1, 2).contiguous()
                 for each in x
             ]
-            x, _ = self.neck(x)
+            x, loss_aux = self.neck(x, labels.squeeze())
             x = x.squeeze(2)
             num_segs = 1
+            losses.update(loss_aux)
+        # print("X shape",x.shape)
+        # x = x.squeeze(1)
+        # print("Skeleton data shape",skeleton_data.shape)
+        x = x.view(batches, 10, -1)
+        x= x.mean(dim=1) 
+        skeleton_data = skeleton_data.float()
+        skeleton_features=self.unik(skeleton_data,return_features=True)
+        x= torch.cat([x, skeleton_features], dim=1)
 
         # if self.feature_extraction:
         #     # perform spatial pooling
@@ -212,7 +250,7 @@ class Recognizer2D(BaseRecognizer):
                                       cls_score.size()[0] // batches)
         return cls_score
 
-    def forward_test(self, imgs,labels,embs_la):
+    def forward_test(self, imgs,labels,embs_la,skeleton_data):
         """Defines the computation performed at every call when evaluation and
         testing."""
         if self.test_cfg.get('fcn_test', False):
@@ -220,7 +258,7 @@ class Recognizer2D(BaseRecognizer):
             assert not self.feature_extraction
             assert self.with_cls_head
             return self._do_fcn_test(imgs).cpu().numpy()
-        return self._do_test(imgs,labels,embs_la).cpu().numpy()
+        return self._do_test(imgs,labels,embs_la,skeleton_data).cpu().numpy()
 
     def forward_dummy(self, imgs, softmax=False):
         """Used for computing network FLOPs.

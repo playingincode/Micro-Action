@@ -11,9 +11,15 @@ import torch
 from mmcv.utils import print_log
 from torch.utils.data import Dataset
 import os
+import csv
 from ..core import (mean_average_precision, mean_class_accuracy,
                     mmit_mean_average_precision, top_k_accuracy)
 from .pipelines import Compose
+import pickle
+# import tools
+import sys
+sys.path.insert(0, '/data/stars/user/npoddar/UNIK_with_skeleton/')
+from feeders import tools
 
 
 class BaseDataset(Dataset, metaclass=ABCMeta):
@@ -83,7 +89,7 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
         self.sample_by_class = sample_by_class
         self.power = power
         self.dynamic_length = dynamic_length
-
+        # self.sample_name, self.label = pickle.load(f)
         assert not (self.multi_class and self.sample_by_class)
 
         self.pipeline = Compose(pipeline)
@@ -100,6 +106,42 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
             class_prob = [x / summ for x in class_prob]
 
             self.class_prob = dict(zip(self.video_infos_by_class, class_prob))
+        
+        self.numpy_data_for_unik_train=np.load("/data/stars/user/areka/MULTIMEDIA_CONFERANCE_2025/UNIK_delete/data/newFilesma/xsub/train_data_joint.npy")
+        self.numpy_data_for_unik_val=np.load("/data/stars/user/areka/MULTIMEDIA_CONFERANCE_2025/UNIK_delete/data/newFilesma/xsub/val_data_joint.npy")
+        with open("/data/stars/user/areka/MULTIMEDIA_CONFERANCE_2025/UNIK_delete/data/newFilesma/xsub/train_label.pkl", 'rb') as f:
+            self.sample_name_train, self.label_name_train = pickle.load(f, encoding='latin1')
+            
+        
+        with open("/data/stars/user/areka/MULTIMEDIA_CONFERANCE_2025/UNIK_delete/data/newFilesma/xsub/val_label.pkl", 'rb') as f:
+            self.sample_name_val, self.label_name_val = pickle.load(f, encoding='latin1')
+        
+        self.window_size_unik=150
+        # self.normalization=False
+        self.random_shift_unik=False
+        self.random_choose_unik=True
+        self.random_move_unik=True
+        
+        
+        self.reverse_mapping = {}  # video.mp4 → skeleton_file
+        
+        with open("/data/stars/user/npoddar/Micro-Action/mar_scripts/manet/mmaction2/mmaction/datasets/file_mapping_train_val.csv", "r") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                json_file = row["original_json_file"]
+                skeleton_file = row["ntu_skeleton_file"]
+
+                # Process json_file to get video filename
+                if json_file.startswith("train_"):
+                    trimmed = json_file[len("train_"):]
+                elif json_file.startswith("val_"):
+                    trimmed = json_file[len("val_"):]
+                else:
+                    trimmed = json_file
+              
+                video_file = trimmed.split("_class")[0] + ".mp4"
+                # print(video_file)
+                self.reverse_mapping[video_file] = skeleton_file
 
     @abstractmethod
     def load_annotations(self):
@@ -124,6 +166,46 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
                 video_infos[i]['label'] = video_infos[i]['label'][0]
         return video_infos
 
+    def get_skeleton_from_rgb(self, rgb_filename,parts):
+        """
+        Given an RGB filename (e.g., 'video123.mp4'), return the corresponding skeleton numpy array
+        from self.data using reverse lookup via file_mapping_train_val.csv
+        """
+        # Step 1: Build reverse map (once)
+        # print(rgb_filename)
+        
+
+        # Step 2: Lookup skeleton file for given RGB
+        if rgb_filename not in self.reverse_mapping:
+            raise ValueError(f"RGB file {rgb_filename} not found in mapping.")
+
+        skeleton_file = self.reverse_mapping[rgb_filename]
+
+        # Step 3: Find index of skeleton_file in sample_name
+        if "train" in parts:
+            try:
+                idx = self.sample_name_train.index(skeleton_file)
+            except ValueError:
+                raise ValueError(f"Skeleton file {skeleton_file} not found in sample_name.")
+
+            # Step 4: Return skeleton data
+            
+            skeleton_numpy = self.numpy_data_for_unik_train[idx]
+            return skeleton_numpy, idx
+        
+        
+        else:
+            # if "train" in parts:
+            try:
+                idx = self.sample_name_val.index(skeleton_file)
+            except ValueError:
+                raise ValueError(f"Skeleton file {skeleton_file} not found in sample_name.")
+
+            # Step 4: Return skeleton data
+            
+            skeleton_numpy = self.numpy_data_for_unik_val[idx]
+            return skeleton_numpy, idx
+    
     def parse_by_class(self):
         video_infos_by_class = defaultdict(list)
         for item in self.video_infos:
@@ -278,11 +360,28 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
         results['start_index'] = self.start_index
         video_path = results['filename']
         parts = video_path.strip(os.sep).split(os.sep)
+        # print("Video name",parts[-1])
         relative_path = os.path.join(parts[-2], parts[-1])
+        # print("parts",parts[-2])
         # print("Video path",)
         complete_path_videomaev2_features=os.path.join("/data/stars/user/areka/MULTIMEDIA_CONFERANCE_2025/features_ma52_RGB/",relative_path)
         # print("Video mae v2",complete_path_videomaev2_features)
         npy_path = os.path.splitext(complete_path_videomaev2_features)[0] + '.npy'
+        
+        # unik_path=""
+        
+        # print(numpy_data)
+        # print("Video path",video_path)
+        skeleton_data,_=self.get_skeleton_from_rgb(parts[-1],parts[-2])
+        skeleton_data = np.concatenate((skeleton_data[:,:,:,:], np.zeros((skeleton_data.shape))), axis=3)
+        skeleton_data=self.unik_data_maker(skeleton_data)
+        # print(skeleton_data)
+        numpy_data=skeleton_data
+        # print("Type:", type(numpy_data))
+        # if isinstance(numpy_data, np.ndarray):
+        #     print("Shape:", numpy_data.shape)
+        #     print("Dtype:", numpy_data.dtype)
+        # print(skeleton_data.dtype)
 
 # Load the .npy file
         if os.path.exists(npy_path):
@@ -305,26 +404,65 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
         # print(f"[DEBUG] idx={idx}, features shape: {features_tensor.shape}")
         data = self.pipeline(results)
         data['imgs'] = features_tensor
+        data['skeleton_data']=numpy_data
         return data
+    
+    
+    def unik_data_maker(self,data_numpy):
+        
+       
+        # if self.normalization:
+        #     data_numpy = (data_numpy - self.mean_map) / self.std_map
+        if self.random_shift_unik:
+            data_numpy = tools.random_shift(data_numpy)
+        if self.random_choose_unik:
+            data_numpy = tools.random_choose(data_numpy, self.window_size_unik)
+        elif self.window_size_unik > 0:
+            data_numpy = tools.auto_pading(data_numpy, self.window_size_unik)
+        if self.random_move_unik:
+            data_numpy = tools.random_move(data_numpy)
+        
+        return data_numpy
        
 
     def prepare_test_frames(self, idx):
         """Prepare the frames for testing given the index."""
         results = copy.deepcopy(self.video_infos[idx])
+        # print("results",results)
         results['modality'] = self.modality
         results['start_index'] = self.start_index
         video_path = results['filename']
         parts = video_path.strip(os.sep).split(os.sep)
+        # print("Video name",parts[-1])
         relative_path = os.path.join(parts[-2], parts[-1])
+        # print("parts",parts[-2])
         # print("Video path",)
         complete_path_videomaev2_features=os.path.join("/data/stars/user/areka/MULTIMEDIA_CONFERANCE_2025/features_ma52_RGB/",relative_path)
+        # print("Video mae v2",complete_path_videomaev2_features)
         npy_path = os.path.splitext(complete_path_videomaev2_features)[0] + '.npy'
+        
+        # unik_path=""
+        
+        # print(numpy_data)
+        # print("Video path",video_path)
+        skeleton_data,_=self.get_skeleton_from_rgb(parts[-1],parts[-2])
+        skeleton_data = np.concatenate((skeleton_data[:,:,:,:], np.zeros((skeleton_data.shape))), axis=3)
+        skeleton_data=self.unik_data_maker(skeleton_data)
+        # print(skeleton_data)
+        numpy_data=skeleton_data
+        # print("Type:", type(numpy_data))
+        # if isinstance(numpy_data, np.ndarray):
+        #     print("Shape:", numpy_data.shape)
+        #     print("Dtype:", numpy_data.dtype)
+        # print(skeleton_data.dtype)
 
 # Load the .npy file
         if os.path.exists(npy_path):
             features = np.load(npy_path)
         else:
             print("Hi")
+            # print(features)
+
         # prepare tensor in getitem
         # If HVU, type(results['label']) is dict
         if self.multi_class and isinstance(results['label'], list):
@@ -339,7 +477,9 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
         # print(f"[DEBUG] idx={idx}, features shape: {features_tensor.shape}")
         data = self.pipeline(results)
         data['imgs'] = features_tensor
+        data['skeleton_data']=numpy_data
         return data
+    
         # return self.pipeline(results)
 
     def __len__(self):

@@ -100,4 +100,4 @@ optimizer = dict(
 )
 # runtime settings
 checkpoint_config = dict(interval=5)
-work_dir = './work_dirs/manet_prova_sgp_six_classes_embedding_average_our_model/'
+work_dir = './work_dirs/manet_prova_sgp_leg_hand_with_unikmanet_leg_hand_unik_fused/'

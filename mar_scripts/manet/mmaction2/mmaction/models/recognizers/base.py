@@ -2,7 +2,12 @@
 import warnings
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
+import sys
+sys.path.insert(0, '/data/stars/user/npoddar/UNIK_with_skeleton/')
 
+
+
+from model.backbone_unik import UNIK
 import torch
 import torch.distributed as dist
 import torch.nn as nn
@@ -12,7 +17,7 @@ from mmcv.utils import digit_version
 from mmaction.models.recognizers.tridet_block import LayerNorm as TriDetLayerNorm
 from .. import builder
 from .tridet_block import SGPBlock, Global_Relational_Block
-
+import math
 class BaseRecognizer(nn.Module, metaclass=ABCMeta):
     """Base class for recognizers.
 
@@ -45,9 +50,12 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
         self.SGP_block=SGPBlock(1408,1,1,k=1.5,n_hidden=768,init_conv_vars=0)
         self.SGP_block_2 = SGPBlock(1408, 1, n_ds_stride=2, k=1.5, n_hidden=768, init_conv_vars=0)
         self.Global_Relational_Block = Global_Relational_Block(1408, num_heads=4)
-
+       
         self.norm1=TriDetLayerNorm(1408)
         self.norm2=TriDetLayerNorm(1408)
+        self.load_unik_weights("/data/stars/user/areka/MULTIMEDIA_CONFERANCE_2025/UNIK_delete/weights/weights-posetics25.pt",4)
+        # self.posetics_path="/data/stars/user/areka/MULTIMEDIA_CONFERANCE_2025/UNIK_delete/weights/weights-posetics25.pt"
+        
 
         if backbone['type'].startswith('mmcls.'):
             
@@ -128,6 +136,54 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
 
         self.fp16_enabled = False
 
+
+
+
+   
+    def load_unik_weights(self,weights,num_class):
+        self.model_action = UNIK(320)
+
+        if weights!='no':
+            print('pre-training: ', weights)
+            weights = torch.load(weights)
+            weights = OrderedDict(
+                [[k.split('module.')[-1],
+                v.cuda(0)] for k, v in weights.items()])
+
+            conv_keys = ['l1.s_unit.conv_a.0.weight', 'l1.s_unit.conv_a.1.weight', 'l1.s_unit.conv_a.2.weight',
+                         'l1.s_unit.conv_b.0.weight', 'l1.s_unit.conv_b.1.weight', 'l1.s_unit.conv_b.2.weight',
+                         'l1.s_unit.conv_d.0.weight', 'l1.s_unit.conv_d.1.weight', 'l1.s_unit.conv_d.2.weight',
+                         'l1.s_unit.down.0.weight']
+            bn_keys = [
+                'data_bn.weight', 'data_bn.bias',
+                'data_bn.running_mean', 'data_bn.running_var'
+            ]
+            for k in bn_keys:
+                if k in weights and weights[k].shape[0] == 150:
+                    weights[k] = weights[k][:100]
+            for k in conv_keys:
+                if k in weights and weights[k].shape[1] == 3:
+                    # Take only the first 2 channels
+                    weights[k] = weights[k][:, :2, :, :]
+
+            keys = list(weights.keys())
+            try:
+                self.model_action.load_state_dict(weights)
+            except:
+                state = self.model.state_dict()
+                diff = list(set(state.keys()).difference(set(weights.keys())))
+                print('Can not find these weights:')
+                for d in diff:
+                    print('  ' + d)
+                state.update(weights)
+                self.model.load_state_dict(state)
+
+
+        # transfer learning
+        self.model_action.fc = nn.Linear(256, num_class)
+        nn.init.normal_(self.model_action.fc.weight, 0, math.sqrt(2. / num_class))
+        self.unik=self.model_action
+        
     @property
     def with_neck(self):
         """bool: whether the recognizer has a neck"""
@@ -271,7 +327,7 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
 
         return loss, log_vars
 
-    def forward(self, imgs, label,emb, return_loss=True, **kwargs):
+    def forward(self, imgs, label,emb,skeleton_data, return_loss=True, **kwargs):
         """Define the computation performed at every call."""
         if kwargs.get('gradcam', False):
             del kwargs['gradcam']
@@ -281,9 +337,9 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
                 raise ValueError('Label should not be None.')
             if self.blending is not None:
                 imgs, label = self.blending(imgs, label)
-            return self.forward_train(imgs, label,emb, **kwargs)
+            return self.forward_train(imgs, label,emb,skeleton_data, **kwargs)
 
-        return self.forward_test(imgs,label,emb, **kwargs)
+        return self.forward_test(imgs,label,emb,skeleton_data, **kwargs)
 
     def train_step(self, data_batch, optimizer, **kwargs):
 
@@ -321,13 +377,15 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
         imgs = data_batch['imgs']
         label = data_batch['label']
         emb=data_batch['emb']
+        skeleton_data=data_batch['skeleton_data']
+        
 
         aux_info = {}
         for item in self.aux_info:
             assert item in data_batch
             aux_info[item] = data_batch[item]
 
-        losses = self(imgs, label, emb,return_loss=True, **aux_info)
+        losses = self(imgs, label, emb,skeleton_data,return_loss=True, **aux_info)
 
         loss, log_vars = self._parse_losses(losses)
 
@@ -348,12 +406,13 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
         imgs = data_batch['imgs']
         label = data_batch['label']
         emb=data_batch['emb']
+        skeleton_data=data_batch['skeleton_data']
 
         aux_info = {}
         for item in self.aux_info:
             aux_info[item] = data_batch[item]
 
-        losses = self(imgs, label,emb, return_loss=True, **aux_info)
+        losses = self(imgs, label,emb,skeleton_data, return_loss=True, **aux_info)
 
         loss, log_vars = self._parse_losses(losses)
 

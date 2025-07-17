@@ -107,16 +107,18 @@ class MANetHead(BaseHead):
         # print("X shape inside classifier",x.shape)
         
         cls_score = self.fc_cls(x)
+        # print("Cls score",cls_score.shape)
         emb_score = self.fc_emb_t(self.tanh(self.fc_emb(x)))
 
-        if self.is_shift and self.temporal_pool:
-            cls_score = cls_score.view((-1, self.num_segments // 2) +
-                                       cls_score.size()[1:])
-        else:
-            cls_score = cls_score.view((-1, self.num_segments) +
-                                       cls_score.size()[1:])
-            emb_score = emb_score.view((-1, self.num_segments) +
-                            emb_score.size()[1:])
-        cls_score = self.consensus(cls_score)
-        emb_score = self.consensus(emb_score)
+        # if self.is_shift and self.temporal_pool:
+        #     cls_score = cls_score.view((-1, self.num_segments // 2) +
+        #                                cls_score.size()[1:])
+        # else:
+        #     cls_score = cls_score.view((-1, self.num_segments) +
+        #                                cls_score.size()[1:])
+        # emb_score = emb_score.view((-1, self.num_segments) +
+        #                     emb_score.size()[1:])
+        # # print("Cls score",cls_score.shape)
+        # # cls_score = self.consensus(cls_score)
+        # emb_score = self.consensus(emb_score)
         return cls_score.squeeze(1),emb_score.squeeze(1)
