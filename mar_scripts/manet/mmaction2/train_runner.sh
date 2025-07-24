@@ -1,7 +1,7 @@
 #!/bin/bash
-#OAR -p gpu='YES' and host='nefgpu46.inria.fr'
+#OAR -p gpu='YES' and host='nefgpu59.inria.fr'
 #OAR -l /nodes=1/gpunum=1,walltime=72:00:00
-#OAR --name head_body_without_word_embedding
+#OAR --name fourth_expert_MPII_running
 #OAR --stdout nef_logs/%jobname%.%jobid%.out
 #OAR --stderr nef_logs/%jobname%.%jobid%.err
 

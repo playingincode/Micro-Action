@@ -37,7 +37,7 @@ class VideoDataset(BaseDataset):
     """
 
     def __init__(self, ann_file, pipeline, start_index=0, **kwargs):
-        self.embeddings=np.load("./manet/1214_new_mean_Vectors.npy")
+        self.embeddings=np.load("/data/stars/user/npoddar/mpii_group_interaction_embeddings.npy")
         super().__init__(ann_file, pipeline, start_index=start_index, **kwargs)
         
 
@@ -58,8 +58,21 @@ class VideoDataset(BaseDataset):
                 else:
                     filename, label = line_split
                     label = int(label)
-                    if 0 <= label <= 10:
-                        label=label
+                    label_first_expert = [0, 1, 2, 3, 10, 13]
+                    label_second_expert=[4,5,6]
+                    label_third_expert=[8,9,16]
+                    label_fourth_expert=[7,11,12,14,15,17,18]
+                    # if 9 <= label <= 10:
+                    #     label=label
+                    
+                    if label in label_fourth_expert:
+                        index = label_fourth_expert.index(label)
+                        emb=self.embeddings[label]
+                        label=index
+                        
+                    else:
+                        continue
+                    
                         # emb = np.mean(, axis=0)
                         # emb=self.embeddings[0]
                         # if 0 <= label <= 10:
@@ -88,10 +101,10 @@ class VideoDataset(BaseDataset):
                     #     label=5
                     #     # emb = np.mean(, axis=0)
                     #     emb=self.embeddings[48]
-                    else:
-                        continue
+                    # else:
+                    #     continue
                 if self.data_prefix is not None:
                     filename = osp.join(self.data_prefix, filename)
-                emb=self.embeddings[label]
+                # emb=self.embeddings[label]
                 video_infos.append(dict(filename=filename, label=label,emb=emb))
         return video_infos
