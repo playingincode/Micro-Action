@@ -1,7 +1,7 @@
 #!/bin/bash
-#OAR -p gpu='YES' and host='nefgpu59.inria.fr'
+#OAR -p gpu='YES' and host='nefgpu56.inria.fr'
 #OAR -l /nodes=1/gpunum=1,walltime=72:00:00
-#OAR --name fourth_expert_MPII_running
+#OAR --name second_expert_running_for_mpii_again
 #OAR --stdout nef_logs/%jobname%.%jobid%.out
 #OAR --stderr nef_logs/%jobname%.%jobid%.err
 
@@ -27,4 +27,4 @@ nvidia-smi || { echo "NVIDIA driver issue"; exit 1; }
 export PATH=/pytorch_env/bin:$PATH
 
 export CUBLAS_WORKSPACE_CONFIG=:4096:8
-python -u tools/train.py configs/recognition/manet/manet.py --seed=0 --deterministic
+python -u tools/train.py configs/recognition/manet/manet.py --seed=0 --deterministic --resume-from /data/stars/user/npoddar/MANET_original_six_classes/Micro-Action/mar_scripts/manet/mmaction2/work_dirs/all_experts_without_cross_attention_with_trainable_weighter/epoch_20.pth

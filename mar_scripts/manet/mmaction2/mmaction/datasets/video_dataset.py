@@ -65,10 +65,38 @@ class VideoDataset(BaseDataset):
                     # if 9 <= label <= 10:
                     #     label=label
                     
-                    if label in label_fourth_expert:
-                        index = label_fourth_expert.index(label)
+                    # if label in label_first_expert:
+                    #     # index = label_fourth_expert.index(label)
+                    #     # emb=self.embeddings[label]
+                    #     # label=index
+                    #     label=0
+                    #     emb=self.embeddings[0]
+                        
+                    
+                    if label in label_second_expert:
+                        # index = label_fourth_expert.index(label)
+                        # emb=self.embeddings[label]
+                        # label=index
+                        label=label
                         emb=self.embeddings[label]
+                        index = label_second_expert.index(label)
                         label=index
+                        
+                    # elif label in label_third_expert:
+                    #     # index = label_fourth_expert.index(label)
+                    #     # emb=self.embeddings[label]
+                    #     # label=index
+                    #     label=2
+                    #     emb=self.embeddings[8]
+                        
+                    
+                    # elif label in label_fourth_expert:
+                    #     # index = label_fourth_expert.index(label)
+                    #     # emb=self.embeddings[label]
+                    #     # label=index
+                    #     label=3
+                    #     emb=self.embeddings[7]
+                        
                         
                     else:
                         continue
