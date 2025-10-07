@@ -58,13 +58,17 @@ class VideoDataset(BaseDataset):
                 else:
                     filename, label = line_split
                     label = int(label)
-                    if 0 <= label <= 10:
-                        label=label
+                    if 11 <= label <= 23:
+                        lable=label-11
+                        
                         # emb = np.mean(, axis=0)
                         # emb=self.embeddings[0]
                         # if 0 <= label <= 10:
                         
                         # label = 0
+                    elif 32 <= label <= 47:
+                        label=label-19
+                        
                     # elif:
                     #     label=1
                     #     emb = np.mean(self.embeddings[0:11], axis=0)

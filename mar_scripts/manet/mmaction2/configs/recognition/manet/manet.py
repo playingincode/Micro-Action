@@ -5,11 +5,11 @@ _base_ = [
 
 # dataset settings
 dataset_type = 'VideoDataset'
-data_root = '/data/stars/share/MA_52/train'
-data_root_val = '/data/stars/share/MA_52/val/'
+data_root = '/srv/storage/stars@storage3.sophia.grid5000.fr/share/MA_52/train'
+data_root_val = '/srv/storage/stars@storage3.sophia.grid5000.fr/share/MA_52/val/'
 data_root_test = './data/ma52/videos_test/'
-ann_file_train = '/data/stars/share/MA_52/annotations/annotations_train_list_videos.txt'
-ann_file_val = '/data/stars/share/MA_52/annotations/annotations_val_list_videos.txt'
+ann_file_train = '/srv/storage/stars@storage3.sophia.grid5000.fr/share/MA_52/annotations/annotations_train_list_videos.txt'
+ann_file_val = '/srv/storage/stars@storage3.sophia.grid5000.fr/share/MA_52/annotations/annotations_val_list_videos.txt'
 ann_file_test = './data/ma52/test_list_videos.txt'
 
 img_norm_cfg = dict(
@@ -99,5 +99,5 @@ optimizer = dict(
     lr=0.01/8, 
 )
 # runtime settings
-checkpoint_config = dict(interval=5)
-work_dir = './work_dirs/experts/head_body_without_word_embedding'
+checkpoint_config = dict(interval=1)
+work_dir = './work_dirs/experts/upper_limb_cvpr'
