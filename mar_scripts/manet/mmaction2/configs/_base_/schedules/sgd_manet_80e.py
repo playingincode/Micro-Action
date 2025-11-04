@@ -9,4 +9,4 @@ optimizer = dict(
 optimizer_config = dict(grad_clip=dict(max_norm=20, norm_type=2))
 # learning policy
 lr_config = dict(policy='step', step=[30, 60])
-total_epochs = 80
+total_epochs = 200

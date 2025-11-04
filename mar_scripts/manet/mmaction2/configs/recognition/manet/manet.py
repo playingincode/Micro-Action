@@ -100,4 +100,4 @@ optimizer = dict(
 )
 # runtime settings
 checkpoint_config = dict(interval=1)
-work_dir = './work_dirs/experts/upper_limb_cvpr'
+work_dir = '/srv/storage/stars@storage3.sophia.grid5000.fr/areka/areka/CVPR/face_only_ma_52'

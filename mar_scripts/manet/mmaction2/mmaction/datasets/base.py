@@ -273,6 +273,7 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
     def prepare_train_frames(self, idx):
         """Prepare the frames for training given the index."""
         results = copy.deepcopy(self.video_infos[idx])
+        # print("Features tensor new",features_tensor.shape)
         # print("results",results)
         results['modality'] = self.modality
         results['start_index'] = self.start_index
@@ -280,12 +281,14 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
         parts = video_path.strip(os.sep).split(os.sep)
         relative_path = os.path.join(parts[-2], parts[-1])
         # print("Video path",)
-        complete_path_videomaev2_features=os.path.join("/srv/storage/stars@storage3.sophia.grid5000.fr/areka/areka/MULTIMEDIA_CONFERANCE_2025/features_ma52_RGB/",relative_path)
+        complete_path_videomaev2_features=os.path.join("/srv/storage/stars@storage3.sophia.grid5000.fr/areka/areka/CVPR/Features_face_RGB_MA_52_mask",relative_path)
+        
         # print("Video mae v2",complete_path_videomaev2_features)
         npy_path = os.path.splitext(complete_path_videomaev2_features)[0] + '.npy'
 
 # Load the .npy file
         if os.path.exists(npy_path):
+            # print("hello")
             features = np.load(npy_path)
         else:
             print("Hi")
@@ -300,6 +303,7 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
         
         features_tensor = torch.tensor(features) 
         features_tensor=self.pad_or_truncate(features_tensor)
+       
         # print("Pipeline ",type(self.pipeline(results)['imgs']))
         # exit()
         # print(f"[DEBUG] idx={idx}, features shape: {features_tensor.shape}")
@@ -317,7 +321,7 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
         parts = video_path.strip(os.sep).split(os.sep)
         relative_path = os.path.join(parts[-2], parts[-1])
         # print("Video path",)
-        complete_path_videomaev2_features=os.path.join("/srv/storage/stars@storage3.sophia.grid5000.fr/areka/areka/MULTIMEDIA_CONFERANCE_2025/features_ma52_RGB/",relative_path)
+        complete_path_videomaev2_features=os.path.join("/srv/storage/stars@storage3.sophia.grid5000.fr/areka/areka/CVPR/Features_face_RGB_MA_52_mask/",relative_path)
         npy_path = os.path.splitext(complete_path_videomaev2_features)[0] + '.npy'
 
 # Load the .npy file
