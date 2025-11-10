@@ -280,7 +280,7 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
         parts = video_path.strip(os.sep).split(os.sep)
         relative_path = os.path.join(parts[-2], parts[-1])
         # print("Video path",)
-        complete_path_videomaev2_features=os.path.join("/srv/storage/stars@storage3.sophia.grid5000.fr/areka/areka/MULTIMEDIA_CONFERANCE_2025/features_ma52_RGB/",relative_path)
+        complete_path_videomaev2_features=os.path.join("/srv/storage/stars@storage3.sophia.grid5000.fr/areka/areka/CVPR/Features_lower_limb_RGB_MA_52/",relative_path)
         # print("Video mae v2",complete_path_videomaev2_features)
         npy_path = os.path.splitext(complete_path_videomaev2_features)[0] + '.npy'
 
@@ -317,7 +317,7 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
         parts = video_path.strip(os.sep).split(os.sep)
         relative_path = os.path.join(parts[-2], parts[-1])
         # print("Video path",)
-        complete_path_videomaev2_features=os.path.join("/srv/storage/stars@storage3.sophia.grid5000.fr/areka/areka/MULTIMEDIA_CONFERANCE_2025/features_ma52_RGB/",relative_path)
+        complete_path_videomaev2_features=os.path.join("/srv/storage/stars@storage3.sophia.grid5000.fr/areka/areka/CVPR/Features_lower_limb_RGB_MA_52/",relative_path)
         npy_path = os.path.splitext(complete_path_videomaev2_features)[0] + '.npy'
 
 # Load the .npy file

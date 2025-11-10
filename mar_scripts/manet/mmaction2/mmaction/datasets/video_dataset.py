@@ -58,16 +58,20 @@ class VideoDataset(BaseDataset):
                 else:
                     filename, label = line_split
                     label = int(label)
-                    if 11 <= label <= 23:
-                        lable=label-11
+                    label1=label
+                    if not 24 <= label <= 31:
+                        continue
+                    label=label-24
+                        
+                        # lable=label-11
                         
                         # emb = np.mean(, axis=0)
                         # emb=self.embeddings[0]
                         # if 0 <= label <= 10:
                         
                         # label = 0
-                    elif 32 <= label <= 47:
-                        label=label-19
+                    # elif 32 <= label <= 47:
+                    #     label=label-19
                         
                     # elif:
                     #     label=1
@@ -92,10 +96,10 @@ class VideoDataset(BaseDataset):
                     #     label=5
                     #     # emb = np.mean(, axis=0)
                     #     emb=self.embeddings[48]
-                    else:
-                        continue
+                    # else:
+                    #     continue
                 if self.data_prefix is not None:
                     filename = osp.join(self.data_prefix, filename)
-                emb=self.embeddings[label]
+                emb=self.embeddings[label1]
                 video_infos.append(dict(filename=filename, label=label,emb=emb))
         return video_infos

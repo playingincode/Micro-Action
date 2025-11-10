@@ -100,4 +100,4 @@ optimizer = dict(
 )
 # runtime settings
 checkpoint_config = dict(interval=1)
-work_dir = './work_dirs/experts/upper_limb_cvpr'
+work_dir = './work_dirs/experts/Removing_MHA_without_word_embedding_for_lower_limb_expert_again_put'

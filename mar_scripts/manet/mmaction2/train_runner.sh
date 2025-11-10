@@ -1,7 +1,7 @@
 #!/bin/bash
-#OAR -p esterel30
+#OAR -p esterel31
 #OAR -l host=1/gpu=1,walltime=72:00:00
-#OAR --name upper_limb_cvpr
+#OAR --name Removing_MHA_without_word_embedding_for_lower_limb_expert_again_put
 #OAR --stdout nef_logs/%jobname%.%jobid%.out
 #OAR --stderr nef_logs/%jobname%.%jobid%.err
 
@@ -9,7 +9,7 @@
 source ~/.bashrc
 conda info
 module load conda/2020.48-python3.8 cuda/12.2 gcc/9.2.0
-conda config --add envs_dirs /home/npoddar/CONDA_NEF/envs/
+# conda config --add envs_dirs /home/npoddar/CONDA_NEF/envs/
 
 
 # Activate conda environment
