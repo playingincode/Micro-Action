@@ -1,12 +1,12 @@
 #!/bin/bash
-#OAR -p gpu='YES' and host='nefgpu56.inria.fr'
-#OAR -l /nodes=1/gpunum=1,walltime=72:00:00
-#OAR --name second_expert_running_for_mpii_again
+#OAR -p esterel40
+#OAR -l /nodes=1/gpu=1,walltime=72:00:00
+#OAR --name second_class_expert_running_for_Social_gesture
 #OAR --stdout nef_logs/%jobname%.%jobid%.out
 #OAR --stderr nef_logs/%jobname%.%jobid%.err
 
-
-
+source ~/.bashrc
+conda info
 module load conda/2020.48-python3.8 cuda/12.2 gcc/9.2.0
 
 # Activate conda environment
@@ -27,4 +27,4 @@ nvidia-smi || { echo "NVIDIA driver issue"; exit 1; }
 export PATH=/pytorch_env/bin:$PATH
 
 export CUBLAS_WORKSPACE_CONFIG=:4096:8
-python -u tools/train.py configs/recognition/manet/manet.py --seed=0 --deterministic --resume-from /data/stars/user/npoddar/MANET_original_six_classes/Micro-Action/mar_scripts/manet/mmaction2/work_dirs/all_experts_without_cross_attention_with_trainable_weighter/epoch_20.pth
+python -u tools/train.py configs/recognition/manet/manet.py --seed=0 --deterministic 

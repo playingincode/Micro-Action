@@ -37,7 +37,7 @@ class VideoDataset(BaseDataset):
     """
 
     def __init__(self, ann_file, pipeline, start_index=0, **kwargs):
-        self.embeddings=np.load("/data/stars/user/npoddar/mpii_group_interaction_embeddings.npy")
+        self.embeddings=np.load("/srv/storage/stars@storage3.sophia.grid5000.fr/npoddar/Social_gestures_embeddings.npy")
         super().__init__(ann_file, pipeline, start_index=start_index, **kwargs)
         
 
@@ -58,10 +58,17 @@ class VideoDataset(BaseDataset):
                 else:
                     filename, label = line_split
                     label = int(label)
-                    label_first_expert = [0, 1, 2, 3, 10, 13]
-                    label_second_expert=[4,5,6]
-                    label_third_expert=[8,9,16]
-                    label_fourth_expert=[7,11,12,14,15,17,18]
+                    if label!=2 and label!=3:
+                        continue
+                    label1=label
+                    label=label-2
+                        
+                    
+                
+                    # label_first_expert = [0, 1, 2, 3, 10, 13]
+                    # label_second_expert=[4,5,6]
+                    # label_third_expert=[8,9,16]
+                    # label_fourth_expert=[7,11,12,14,15,17,18]
                     # if 9 <= label <= 10:
                     #     label=label
                     
@@ -73,14 +80,14 @@ class VideoDataset(BaseDataset):
                     #     emb=self.embeddings[0]
                         
                     
-                    if label in label_second_expert:
+                    # if label in label_second_expert:
                         # index = label_fourth_expert.index(label)
                         # emb=self.embeddings[label]
                         # label=index
-                        label=label
-                        emb=self.embeddings[label]
-                        index = label_second_expert.index(label)
-                        label=index
+                        # label=label
+                        # emb=self.embeddings[label]
+                        # index = label_second_expert.index(label)
+                        # label=index
                         
                     # elif label in label_third_expert:
                     #     # index = label_fourth_expert.index(label)
@@ -98,8 +105,8 @@ class VideoDataset(BaseDataset):
                     #     emb=self.embeddings[7]
                         
                         
-                    else:
-                        continue
+                    # else:
+                    #     continue
                     
                         # emb = np.mean(, axis=0)
                         # emb=self.embeddings[0]
@@ -133,6 +140,6 @@ class VideoDataset(BaseDataset):
                     #     continue
                 if self.data_prefix is not None:
                     filename = osp.join(self.data_prefix, filename)
-                # emb=self.embeddings[label]
+                emb=self.embeddings[label1]
                 video_infos.append(dict(filename=filename, label=label,emb=emb))
         return video_infos
