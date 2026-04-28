@@ -59,9 +59,9 @@ class VideoDataset(BaseDataset):
                     filename, label = line_split
                     label = int(label)
                     label1=label
-                    if not 24 <= label <= 31:
+                    if not 11 <= label <= 23:
                         continue
-                    label=label-24
+                    label=label-11
                         
                         # lable=label-11
                         
